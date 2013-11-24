@@ -14,13 +14,7 @@ import android.content.Context;
 import android.util.Log;
 
 public class ResLoader {
-
-    /**
-     * @param res
-     * @throws IOException
-     * @throws FileNotFoundException
-     * @throws IOException
-     */
+    private static final String TAG = "ResLoader";
 
     static void unpackResources(int id,Context C,String destFolder) throws FileNotFoundException, IOException {
     	 // Open the ZipInputStream
@@ -76,6 +70,6 @@ public class ResLoader {
     
 	public static void log(String s)
 	{ 
-		Log.v(MainActivity.VNC_LOG,s);
+		Log.v(TAG,s);
 	}
 }

@@ -25,6 +25,9 @@ import android.util.Log;
 import android.widget.Toast;
 
 public class ServerManager extends Service {
+    private static final String TAG = "ServerManager";
+    private static final int APP_ID = 123;
+
 	SharedPreferences preferences;
 	private static PowerManager.WakeLock wakeLock = null;
 
@@ -312,7 +315,7 @@ public class ServerManager extends Service {
 		notification.setLatestEventInfo(context, contentTitle, contentText,
 				contentIntent);
 
-		mNotificationManager.notify(MainActivity.APP_ID, notification);
+		mNotificationManager.notify(APP_ID, notification);
 
 		// lets see if we should keep screen on
 		if (preferences.getBoolean("screenturnoff", false)) {
@@ -325,7 +328,7 @@ public class ServerManager extends Service {
 	void showClientDisconnected() {
 		String ns = Context.NOTIFICATION_SERVICE;
 		NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
-		mNotificationManager.cancel(MainActivity.APP_ID);
+		mNotificationManager.cancel(APP_ID);
 
 		if (wakeLock != null && wakeLock.isHeld())
 			wakeLock.release();
@@ -353,7 +356,7 @@ public class ServerManager extends Service {
 	}
 
 	public void log(String s) {
-		Log.v(MainActivity.VNC_LOG, s);
+		Log.v(TAG, s);
 	}
 
 

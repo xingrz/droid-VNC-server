@@ -15,7 +15,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 public class MainApplication extends Application {
-
+    private static final String TAG = "Application";
  
 
 	@Override 
@@ -27,7 +27,7 @@ public class MainApplication extends Application {
  
 	public void log(String s)
 	{ 
-		Log.v(MainActivity.VNC_LOG,s); 
+		Log.v(TAG,s);
 	}
 
 	public boolean firstRun()
