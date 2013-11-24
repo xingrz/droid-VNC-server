@@ -14,7 +14,7 @@
     <application
         android:name="MainApplication"
         android:icon="@drawable/icon" 
-        android:label="droid VNC server" >
+        android:label="VNC server for Glass" >
         <activity
             android:name=".MainActivity"
             android:icon="@drawable/icon"
@@ -26,11 +26,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
                 <action android:name="org.onaips.vnc.ACTIVITY_UPDATE" />
             </intent-filter>
-        </activity>
-
-        <activity 
-            android:name="preferences"
-            android:label="Preferences" >
         </activity>
 
         <service android:name=".ServerManager" >
