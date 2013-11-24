@@ -236,7 +236,6 @@ public class ServerManager extends Service {
 	}
 
 	class SocketListener extends Thread {
-		DatagramSocket server = null;
 		boolean finished = false;
 
 		public void finishThread() {
@@ -246,49 +245,36 @@ public class ServerManager extends Service {
 		@Override
 		public void run() {
 			try {
-				server = new DatagramSocket(13131);
-				log("Listening...");
+                DatagramSocket server = new DatagramSocket(13131);
+                Log.v(TAG, "Listening...");
 
-				while (!finished) {
-					DatagramPacket answer = new DatagramPacket(new byte[1024],
-							1024);
-					server.receive(answer);
+                while (!finished) {
+                    DatagramPacket answer = new DatagramPacket(new byte[1024], 1024);
+                    server.receive(answer);
 
-					String resp = new String(answer.getData());
-					resp = resp.substring(0, answer.getLength());
+                    String res = new String(answer.getData());
+                    res = res.substring(0, answer.getLength());
 
-					log("RECEIVED " + resp);  
+                    Log.v(TAG, "RECEIVED " + res);
 
-					if (resp.length() > 5
-							&& resp.substring(0, 6).equals("~CLIP|")) {
-						resp = resp.substring(7, resp.length() - 1);
-						ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                    int splitter = res.indexOf("|");
+                    if (res.startsWith("~") && splitter > 1) {
+                        String command = res.substring(1, splitter);
+                        String extras = res.substring(splitter + 1);
 
-						clipboard.setText(resp.toString());
-					} else if (resp.length() > 6
-							&& resp.substring(0, 6).equals("~SHOW|")) {
-						resp = resp.substring(6, resp.length() - 1);
-						showTextOnScreen(resp);
-					} else if (resp.length() > 15
-							&& (resp.substring(0, 15).equals("~SERVERSTARTED|") || resp
-									.substring(0, 15).equals("~SERVERSTOPPED|"))) {
-						Intent intent = new Intent("org.onaips.vnc.ACTIVITY_UPDATE");
-						sendBroadcast(intent);
-					} 
-					else if (preferences.getBoolean("notifyclient", true)) {
-						if (resp.length() > 10
-								&& resp.substring(0, 11).equals("~CONNECTED|")) {
-							resp = resp.substring(11, resp.length() - 1);
-							showClientConnected(resp);
-						} else if (resp.length() > 13
-								&& resp.substring(0, 14).equals(
-								"~DISCONNECTED|")) {
-							showClientDisconnected();
-						}
-					} else {
-						log("Received: " + resp);
-					}
-				}
+                        Log.v(TAG, "Command: " + command);
+
+                        if (command.equals("SERVERSTARTED")) {
+                            sendBroadcast(new Intent("org.onaips.vnc.ACTIVITY_UPDATE"));
+                        } else if (command.equals("SERVERSTOPPED")) {
+                            sendBroadcast(new Intent("org.onaips.vnc.ACTIVITY_UPDATE"));
+                        } else if (command.equals("CONNECTED")) {
+                            showClientConnected(extras);
+                        } else if (command.equals("DISCONNECTED")) {
+                            showClientDisconnected();
+                        }
+                    }
+                }
 			} catch (IOException e) {
 				log("ERROR em SOCKETLISTEN " + e.getMessage());
 			}
