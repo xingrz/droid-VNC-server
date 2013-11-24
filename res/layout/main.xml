@@ -4,7 +4,7 @@
     android:layout_height="fill_parent"
     android:background="@drawable/bg"
     android:gravity="bottom"
-    android:orientation="vertical" >
+    android:orientation="vertical">
 
     <LinearLayout
         android:id="@+id/layout1"
@@ -63,20 +63,11 @@
             android:layout_gravity="center" >
 
             <Button
-                android:id="@+id/Button01"
+                android:id="@+id/button_start"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
                 android:layout_centerInParent="true"
                 android:background="@drawable/btnstart" >
-            </Button>
-
-            <Button
-                android:id="@+id/Button02"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_alignParentBottom="true"
-                android:layout_toRightOf="@id/Button01"
-                android:background="@drawable/restart_normal" >
             </Button>
         </RelativeLayout>
     </LinearLayout>

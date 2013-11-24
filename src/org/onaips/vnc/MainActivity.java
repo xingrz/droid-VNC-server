@@ -111,7 +111,7 @@ public class MainActivity extends Activity {
 		setStateLabels(ServerManager.isServerRunning());
 
         // attach button event
-        findViewById(R.id.Button01).setOnClickListener(new OnClickListener() {
+        findViewById(R.id.button_start).setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
                 if (ServerManager.isServerRunning()) {
                     stopServer();
@@ -126,32 +126,19 @@ public class MainActivity extends Activity {
 	public void setStateLabels(boolean running) {
 		TextView stateLabel = (TextView) findViewById(R.id.stateLabel);
 		stateLabel.setText(running ? "Running" : "Stopped");
-		stateLabel.setTextColor(running ? Color.rgb(114,182,43) : Color.rgb(234,113,29));
+		stateLabel.setTextColor(running ? Color.rgb(114, 182, 43) : Color.rgb(234, 113, 29));
 
-		TextView t=(TextView)findViewById(R.id.TextView01);
+		TextView textView = (TextView) findViewById(R.id.TextView01);
+		Button button = (Button) findViewById(R.id.button_start);
 
-		Button b=(Button)findViewById(R.id.Button01);
-		Button b2=(Button)findViewById(R.id.Button02);
 		if (running) {
 			String ip = getIpAddress();
-            String text = ip.equals("")
-                        ? "Not connected to a network.\n"
-                        + "You can connect through USB with:\n"
-                        + "  localhost:5901\n"
-                        + "(use adb to forward ports)"
-                        : "Connect to:\n"
-                        + "  " + ip + ":5901\n";
-
-            t.setText(text);
-			b.setBackgroundDrawable(getResources().getDrawable(R.drawable.btnstop_normal));
-			b2.setVisibility(View.VISIBLE);
-
+            textView.setText(ip.equals("") ? "localhost:5901 (via adb)" : ip + ":5901");
+            button.setBackgroundDrawable(getResources().getDrawable(R.drawable.btnstop_normal));
 		} else {
-			t.setText("");
-			b.setBackgroundDrawable(getResources().getDrawable(R.drawable.btnstart_normal));
-			b2.setVisibility(View.INVISIBLE);
-		}  
-
+            textView.setText("");
+            button.setBackgroundDrawable(getResources().getDrawable(R.drawable.btnstart_normal));
+		}
 	} 
 
 	public String getIpAddress() {
