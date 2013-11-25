@@ -22,6 +22,8 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -32,7 +34,10 @@ import com.google.android.glass.timeline.LiveCard;
 import com.google.android.glass.timeline.TimelineManager;
 
 public class MenuActivity extends Activity {
-	private static final String TAG = "GUI";
+
+	private static final String TAG = "MenuActivity";
+
+    private ServerManager mServer;
 
     public BroadcastReceiver connectivityReceiver = new BroadcastReceiver() {
         @Override
@@ -48,45 +53,29 @@ public class MenuActivity extends Activity {
     };
 
 	private ServiceConnection mConnection = new ServiceConnection() {
-		public void onServiceConnected(ComponentName className, IBinder binder) {
-            //server = ((VNCService.VNCBinder) binder).getService();
+        @Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+            if (service instanceof VNCService.VNCBinder) {
+                mServer = ((VNCService.VNCBinder) service).getServer();
+                openOptionsMenu();
+            }
 		}
 
-		public void onServiceDisconnected(ComponentName className) {
-            //server = null;
+        @Override
+		public void onServiceDisconnected(ComponentName name) {
 		}
 	};
 
-    @Override
-    public void onResume() {
-        //registerReceiver(activityUpdateReceiver, new IntentFilter(ACTIVITY_UPDATE));
-        registerReceiver(connectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-        super.onResume();
-    }
-
-    @Override
-    public void onPause() {
-        unregisterReceiver(connectivityReceiver);
-        //unregisterReceiver(activityUpdateReceiver);
-        super.onPause();
-    }
-
 	@Override  
 	protected void onDestroy() {
-        unbindService(mConnection);
+        //unbindService(mConnection);
         super.onDestroy();
 	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);  
-
-        // setup window
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		setContentView(R.layout.main);
-
-        // bind service
-        bindService(new Intent(this, VNCService.class), mConnection, Context.BIND_AUTO_CREATE);
+		super.onCreate(savedInstanceState);
+        bindService(new Intent(this, VNCService.class), mConnection, 0);
 
         // check root permission
 		if (!hasRootPermission()) {
@@ -98,14 +87,56 @@ public class MenuActivity extends Activity {
             alert.setIcon(R.drawable.icon);
             alert.show();
 		}
-
-        // update ui
-		//setStateLabels(VNCService.isServerRunning());
 	}
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        registerReceiver(connectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        openOptionsMenu();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        unregisterReceiver(connectivityReceiver);
+    }
+
+    @Override
+    public void openOptionsMenu() {
+        if (mServer != null) {
+            super.openOptionsMenu();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.vnc, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.stop:
+                mServer.stop();
+                stopService(new Intent(this, VNCService.class));
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onOptionsMenuClosed(Menu menu) {
+        super.onOptionsMenuClosed(menu);
+        unbindService(mConnection);
+        finish();
+    }
+
     // TODO: make this for Glass
-	public void setStateLabels(boolean running) {
-		/*TextView stateLabel = (TextView) findViewById(R.id.stateLabel);
+	/*public void setStateLabels(boolean running) {
+		TextView stateLabel = (TextView) findViewById(R.id.stateLabel);
 		stateLabel.setText(running ? "Running" : "Stopped");
 		stateLabel.setTextColor(running ? Color.rgb(114, 182, 43) : Color.rgb(234, 113, 29));
 
@@ -119,8 +150,8 @@ public class MenuActivity extends Activity {
 		} else {
             textView.setText("");
             button.setBackgroundDrawable(getResources().getDrawable(R.drawable.btnstart_normal));
-		}*/
-	}
+		}
+	}*/
 
 	public static boolean hasRootPermission() {
 		try {

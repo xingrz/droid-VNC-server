@@ -2,8 +2,9 @@ package org.onaips.vnc;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
-import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.apache.http.conn.util.InetAddressUtils;
@@ -13,7 +14,9 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 
-public class PanelView extends FrameLayout {
+public class PanelView extends LinearLayout {
+
+    private static final String TAG = "PanelView";
 
     public interface ChangeListener {
         public void onChange();
@@ -26,20 +29,24 @@ public class PanelView extends FrameLayout {
     private final ServerManager.ServerListener mServerListener = new ServerManager.ServerListener() {
         @Override
         public void onStart(int port) {
+            Log.v(TAG, "Server started at port " + port);
             updateText();
         }
 
         @Override
         public void onStop() {
+            Log.v(TAG, "Server stopped");
             updateText();
         }
 
         @Override
         public void onConnect(String ip) {
+            Log.v(TAG, "Client " + ip + " connected");
         }
 
         @Override
         public void onDisconnect() {
+            Log.v(TAG, "Client disconnected");
         }
     };
 
@@ -62,6 +69,11 @@ public class PanelView extends FrameLayout {
 
         mServer = new ServerManager(context);
         mServer.setListener(mServerListener);
+        mServer.start();
+    }
+
+    public ServerManager getServer() {
+        return mServer;
     }
 
     public void setListener(ChangeListener listener) {
@@ -69,6 +81,7 @@ public class PanelView extends FrameLayout {
     }
 
     private void updateText() {
+        Log.v(TAG, "update text");
         mStateView.setText(mServer.isRunning() ? "Running" : "Stopped");
         mAddressView.setText(mServer.isRunning() ? (getIpAddress() + ":" + mServer.getPort()) : "");
         if (mChangeListener != null) {

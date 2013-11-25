@@ -28,6 +28,7 @@ public class ServerManager {
     private SocketListener mConnection;
 
     private int mServerPort = 5901;
+    private boolean mIsRunning = false;
 
     public ServerManager(Context context) {
         mContext = context;
@@ -39,56 +40,81 @@ public class ServerManager {
             mConnection = new SocketListener();
             mConnection.start();
         }
+
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    mIsRunning = runningState();
+                    Log.v(TAG, "current state: " + (mIsRunning ? "running": "stopped"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.run();
     }
 
     public void start() {
-        try {
-            String exec = mContext.getFilesDir().getParent() + "/lib/libandroidvncserver.so";
-            if (!new File(exec).exists()) {
-                Log.v(TAG, "Error! Could not find daemon file: " + exec);
-                return;
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    String exec = mContext.getFilesDir().getParent() + "/lib/libandroidvncserver.so";
+                    if (!new File(exec).exists()) {
+                        Log.v(TAG, "Error! Could not find daemon file: " + exec);
+                        return;
+                    }
+
+                    File dir = new File(mContext.getFilesDir().getAbsolutePath());
+                    Runtime runtime = Runtime.getRuntime();
+
+                    String chmod = "chmod 777 " + exec;
+                    String start = exec + " -P 5901";
+
+                    if (MenuActivity.hasRootPermission()) {
+                        Log.v(TAG, "Running as root...");
+                        Process shell = runtime.exec("su", null, dir);
+                        OutputStream os = shell.getOutputStream();
+                        os.write((chmod + "\n").getBytes());
+                        os.write((start + "\n").getBytes());
+                    } else {
+                        Log.v(TAG, "Not running as root...");
+                        runtime.exec(chmod);
+                        runtime.exec(start, null, dir);
+                    }
+
+                    Log.v(TAG, "Starting " + start);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-
-            File dir = new File(mContext.getFilesDir().getAbsolutePath());
-            Runtime runtime = Runtime.getRuntime();
-
-            String chmod = "chmod 777 " + exec;
-            String start = exec + " -P 5901";
-
-            if (MenuActivity.hasRootPermission()) {
-                Log.v(TAG, "Running as root...");
-                Process shell = runtime.exec("su", null, dir);
-                OutputStream os = shell.getOutputStream();
-                os.write((chmod + "\n").getBytes());
-                os.write((start + "\n").getBytes());
-            } else {
-                Log.v(TAG, "Not running as root...");
-                runtime.exec(chmod);
-                runtime.exec(start, null, dir);
-            }
-
-            Log.v(TAG, "Starting " + start);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        }.run();
     }
 
     public void stop() {
-        try {
-            DatagramSocket clientSocket = new DatagramSocket();
-            InetAddress addr = InetAddress.getLocalHost();
-            String toSend = "~KILL|";
-            byte[] buffer = toSend.getBytes();
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    DatagramSocket clientSocket = new DatagramSocket();
+                    InetAddress addr = InetAddress.getLocalHost();
+                    String toSend = "~KILL|";
+                    byte[] buffer = toSend.getBytes();
 
-            DatagramPacket question = new DatagramPacket(buffer, buffer.length, addr, 13132);
-            clientSocket.send(question);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                    DatagramPacket question = new DatagramPacket(buffer, buffer.length, addr, 13132);
+                    clientSocket.send(question);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }.run();
     }
 
     public boolean isRunning() {
+        return mIsRunning;
+    }
+
+    private boolean runningState() throws IOException {
         try {
             byte[] receiveData = new byte[1024];
             DatagramSocket clientSocket = new DatagramSocket();
@@ -154,8 +180,10 @@ public class ServerManager {
                             Log.v(TAG, "Command: " + command);
 
                             if (command.equals("SERVERSTARTED")) {
+                                mIsRunning = true;
                                 mListener.onStart(mServerPort);
                             } else if (command.equals("SERVERSTOPPED")) {
+                                mIsRunning = false;
                                 mListener.onStop();
                             } else if (command.equals("CONNECTED")) {
                                 mListener.onConnect(extras);

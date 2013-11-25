@@ -23,6 +23,10 @@ public class PanelDrawer implements SurfaceHolder.Callback {
         });
     }
 
+    public ServerManager getServer() {
+        return mView.getServer();
+    }
+
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         mHolder = holder;

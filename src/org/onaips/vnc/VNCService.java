@@ -16,8 +16,8 @@ public class VNCService extends Service {
     private static final String LIVE_CARD_ID = "vnc";
 
     public class VNCBinder extends Binder {
-        public VNCService getService() {
-            return VNCService.this;
+        public ServerManager getServer() {
+            return mDrawer.getServer();
         }
     }
 
