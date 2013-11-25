@@ -28,19 +28,11 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 
-public class MainActivity extends Activity {
+import com.google.android.glass.timeline.LiveCard;
+import com.google.android.glass.timeline.TimelineManager;
+
+public class MenuActivity extends Activity {
 	private static final String TAG = "GUI";
-
-    private static final String ACTIVITY_UPDATE = "org.onaips.vnc.ACTIVITY_UPDATE";
-
-	private ServerManager server = null;
-
-    private BroadcastReceiver activityUpdateReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            setStateLabels(ServerManager.isServerRunning());
-        }
-    };
 
     public BroadcastReceiver connectivityReceiver = new BroadcastReceiver() {
         @Override
@@ -49,7 +41,7 @@ public class MainActivity extends Activity {
             if (info != null) {
                 if (info.getType() == ConnectivityManager.TYPE_MOBILE
                         || info.getType() == ConnectivityManager.TYPE_WIFI) {
-                    setStateLabels(ServerManager.isServerRunning());
+                    //setStateLabels(VNCService.isServerRunning());
                 }
             }
         }
@@ -57,17 +49,17 @@ public class MainActivity extends Activity {
 
 	private ServiceConnection mConnection = new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, IBinder binder) {
-            server = ((ServerManager.MyBinder) binder).getService();
+            //server = ((VNCService.VNCBinder) binder).getService();
 		}
 
 		public void onServiceDisconnected(ComponentName className) {
-            server = null;
+            //server = null;
 		}
 	};
 
     @Override
     public void onResume() {
-        registerReceiver(activityUpdateReceiver, new IntentFilter(ACTIVITY_UPDATE));
+        //registerReceiver(activityUpdateReceiver, new IntentFilter(ACTIVITY_UPDATE));
         registerReceiver(connectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         super.onResume();
     }
@@ -75,7 +67,7 @@ public class MainActivity extends Activity {
     @Override
     public void onPause() {
         unregisterReceiver(connectivityReceiver);
-        unregisterReceiver(activityUpdateReceiver);
+        //unregisterReceiver(activityUpdateReceiver);
         super.onPause();
     }
 
@@ -94,7 +86,7 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.main);
 
         // bind service
-        bindService(new Intent(this, ServerManager.class), mConnection, Context.BIND_AUTO_CREATE);
+        bindService(new Intent(this, VNCService.class), mConnection, Context.BIND_AUTO_CREATE);
 
         // check root permission
 		if (!hasRootPermission()) {
@@ -108,23 +100,12 @@ public class MainActivity extends Activity {
 		}
 
         // update ui
-		setStateLabels(ServerManager.isServerRunning());
-
-        // attach button event
-        findViewById(R.id.button_start).setOnClickListener(new OnClickListener() {
-            public void onClick(View arg0) {
-                if (ServerManager.isServerRunning()) {
-                    stopServer();
-                } else {
-                    startServer();
-                }
-            }
-        });
+		//setStateLabels(VNCService.isServerRunning());
 	}
 
     // TODO: make this for Glass
 	public void setStateLabels(boolean running) {
-		TextView stateLabel = (TextView) findViewById(R.id.stateLabel);
+		/*TextView stateLabel = (TextView) findViewById(R.id.stateLabel);
 		stateLabel.setText(running ? "Running" : "Stopped");
 		stateLabel.setTextColor(running ? Color.rgb(114, 182, 43) : Color.rgb(234, 113, 29));
 
@@ -138,33 +119,7 @@ public class MainActivity extends Activity {
 		} else {
             textView.setText("");
             button.setBackgroundDrawable(getResources().getDrawable(R.drawable.btnstart_normal));
-		}
-	} 
-
-	public String getIpAddress() {
-		try {
-            NetworkInterface intf = NetworkInterface.getByName("wlan0");
-            for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-                InetAddress inetAddress = enumIpAddr.nextElement();
-
-                if (!inetAddress.isLoopbackAddress()) {
-                    String ip = inetAddress.getHostAddress();
-                    if (InetAddressUtils.isIPv4Address(ip)) {
-                        return ip;
-                    }
-                }
-            }
-		} catch (SocketException ex) {
-			ex.printStackTrace();
-		}
-		return "";
-	}
-
-	public void startServer() {
-        server.startServer();
-	}
- 	public void stopServer() {
-        server.killServer();
+		}*/
 	}
 
 	public static boolean hasRootPermission() {
